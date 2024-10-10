@@ -2,6 +2,12 @@
 
 Constructing...
 
+## TODO
+
+- [ ] RoPE
+- [ ] Time Embedding
+- [ ] Attention Mask
+
 ## Train
 
 ```bash
