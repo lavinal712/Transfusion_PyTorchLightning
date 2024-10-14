@@ -9,7 +9,7 @@ model:
     lossconfig:
       target: tfm.modules.losses.contperceptual.LPIPSWithDiscriminator
       params:
-        disc_start: 501
+        disc_start: 50001
         kl_weight: 0.000001
         disc_weight: 0.5
     
