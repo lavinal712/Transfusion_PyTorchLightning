@@ -1,0 +1,48 @@
+model:
+  target: models.transfusion.TransformerDiffusion
+  params:
+    vocab_size: 32000
+    transformer_config:
+      target: models.transfusion.Transfusion
+      params:
+        block_size: 2048
+        num_layers: 16
+        block_config:
+          dim: 768
+          num_heads: 12
+          norm_eps: 1e-5
+        
+    encoder_decoder_config:
+      target: models.patch_embed.LinearEmbed
+      params:
+        imput_size: 32
+        patch_size: 2
+        in_channels: 4
+        embed_dim: 768
+
+    first_stage_config:
+      target: model.vae.AutoencoderKL
+      params:
+        ddconfig:
+          double_z: true
+          z_channels: 4
+          resolution: 256
+          in_channels: 3
+          out_ch: 3
+          ch: 128
+          ch_mult: [1, 2, 4, 4]
+          num_res_blocks: 2
+          dropout: 0.0
+        lossconfig:
+          target: torch.nn.Identity
+        embed_dim: 4
+    
+    tokenizer_config:
+      target: transformers.AutoTokenizer
+    
+    loss_fn_config:
+      target: torch.nn.Identity
+
+data:
+  target: data.imagenet.ImageNetLoader
+  params:

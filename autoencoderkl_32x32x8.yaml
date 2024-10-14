@@ -1,0 +1,74 @@
+model:
+  base_learning_rate: 1e-4
+  target: tfm.models.autoencoder.AutoencoderKL
+  params:
+    monitor: "val/rec_loss"
+    embed_dim: 4
+    input_key: image
+    disc_start_iter: 0
+    lossconfig:
+      target: tfm.modules.losses.contperceptual.LPIPSWithDiscriminator
+      params:
+        disc_start: 501
+        kl_weight: 0.000001
+        disc_weight: 0.5
+    
+    ddconfig:
+      double_z: True
+      z_channels: 4
+      resolution: 256
+      in_channels: 3
+      out_ch: 3
+      ch: 128
+      ch_mult: [1, 2, 4, 4]  # num_down = len(ch_mult) - 1
+      num_res_blocks: 2
+      attn_resolutions: [ ]
+      dropout: 0.0
+
+data:
+  target: tfm.data.dataset.DataModuleFromConfig
+  params:
+    batch_size: 16
+    wrap: True
+    train:
+      target: tfm.data.imagenet.ImageNetTrain
+      params:
+        data_root: /home/v-yuqianhong/ImageNet
+        new_name: train
+    validation:
+      target: tfm.data.imagenet.ImageNetValidation
+      params:
+        data_root: /home/v-yuqianhong/ImageNet
+        new_name: val
+
+lightning:
+  strategy:
+    target: pytorch_lightning.strategies.DDPStrategy
+    params:
+      find_unused_parameters: True
+
+  callbacks:
+    metrics_over_trainsteps_checkpoint:
+      params:
+        every_n_train_steps: 5000
+
+    image_logger:
+      target: main.ImageLogger
+      params:
+        disabled: False
+        enable_autocast: False
+        batch_frequency: 1000
+        max_images: 8
+        increase_log_steps: True
+        log_first_step: False
+        log_images_kwargs:
+          use_ema_scope: False
+          N: 8
+          n_rows: 2
+
+  trainer:
+    devices: 0,
+    benchmark: True
+    num_sanity_val_steps: 0
+    accumulate_grad_batches: 1
+    max_epochs: 1000
